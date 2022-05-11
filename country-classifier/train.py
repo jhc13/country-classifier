@@ -104,7 +104,8 @@ class Trainer:
 
     def train(self):
         run_name = datetime.now().strftime("%y%m%d%H%M%S")
-        writer = SummaryWriter(log_dir=f'../{RUNS_DIRECTORY}/{run_name}')
+        run_directory = f'{RUNS_DIRECTORY}/{run_name}'
+        writer = SummaryWriter(log_dir=run_directory)
         for epoch in range(1, EPOCH_COUNT + 1):
             print(f'Epoch {epoch}/{EPOCH_COUNT}')
             train_loss, train_accuracy = self.run_train_epoch()
@@ -120,6 +121,7 @@ class Trainer:
                               epoch)
             writer.flush()
         writer.close()
+        torch.save(self.model.state_dict(), f'{run_directory}/state_dict.pt')
 
 
 if __name__ == '__main__':
