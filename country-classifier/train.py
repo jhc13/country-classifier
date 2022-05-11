@@ -66,30 +66,47 @@ class Trainer:
                                          self.class_count)
         return model
 
-    def train_epoch(self) -> tuple[float, float]:
+    def run_epoch(self, mode: str) -> tuple[float, float]:
         total_loss = 0
         total_correct = 0
-        for batch in tqdm(self.data_loaders['train']):
-            inputs, labels = batch
-            inputs = inputs.to(self.device)
-            labels = labels.to(self.device)
-            self.optimizer.zero_grad()
-            outputs = self.model(inputs)
-            loss = self.criterion(outputs, labels)
-            loss.backward()
-            self.optimizer.step()
-            total_loss += loss.item()
-            predictions = outputs.argmax(dim=1)
-            total_correct += torch.sum(predictions == labels).item()
-        train_loss = total_loss / self.batch_count['train']
-        train_accuracy = total_correct / self.sample_count['train']
-        return train_loss, train_accuracy
+        with torch.set_grad_enabled(mode == 'train'):
+            batches = tqdm(self.data_loaders[mode])
+            batches.set_description(mode.capitalize())
+            for batch in batches:
+                inputs, labels = batch
+                inputs = inputs.to(self.device)
+                labels = labels.to(self.device)
+                if mode == 'train':
+                    self.optimizer.zero_grad()
+                outputs = self.model(inputs)
+                loss = self.criterion(outputs, labels)
+                if mode == 'train':
+                    loss.backward()
+                    self.optimizer.step()
+                total_loss += loss.item()
+                predictions = outputs.argmax(dim=1)
+                total_correct += torch.sum(predictions == labels).item()
+        epoch_loss = total_loss / self.batch_count[mode]
+        epoch_accuracy = total_correct / self.sample_count[mode]
+        return epoch_loss, epoch_accuracy
+
+    def run_train_epoch(self) -> tuple[float, float]:
+        self.model.train()
+        return self.run_epoch('train')
+
+    def run_validation_epoch(self) -> tuple[float, float]:
+        self.model.eval()
+        return self.run_epoch('validation')
 
     def train(self):
         for epoch in range(1, EPOCH_COUNT + 1):
-            train_loss, train_accuracy = self.train_epoch()
-            print(f'Epoch {epoch}/{EPOCH_COUNT}: train loss: {train_loss:.4f}'
-                  f', train accuracy: {train_accuracy:.2%}')
+            print(f'Epoch {epoch}/{EPOCH_COUNT}')
+            train_loss, train_accuracy = self.run_train_epoch()
+            validation_loss, validation_accuracy = self.run_validation_epoch()
+            print(f'Train loss: {train_loss:.4f}, '
+                  f'Train accuracy: {train_accuracy:.2%}\n'
+                  f'Valid loss: {validation_loss:.4f}, '
+                  f'Valid accuracy: {validation_accuracy:.2%}')
 
 
 if __name__ == '__main__':
