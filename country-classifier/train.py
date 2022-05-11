@@ -4,7 +4,6 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, models, transforms
 from tqdm import tqdm
 
-
 DATASET_DIRECTORY = '../dataset'
 BATCH_SIZE = 32
 LEARNING_RATE = 1e-4
@@ -28,55 +27,58 @@ def get_datasets():
                                          download=True)
     test_set = datasets.Country211(root=DATASET_DIRECTORY, split='test',
                                    transform=test_transform, download=True)
-    return train_set, validation_set, test_set
+    return {'train': train_set, 'validation': validation_set, 'test': test_set}
 
 
-def get_data_loaders(train_set, validation_set, test_set):
-    train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True,
-                              num_workers=8, pin_memory=True)
-    validation_loader = DataLoader(validation_set, batch_size=BATCH_SIZE,
-                                   shuffle=False,
+def get_data_loaders(datasets_):
+    train_loader = DataLoader(datasets_['train'], batch_size=BATCH_SIZE,
+                              shuffle=True, num_workers=8, pin_memory=True)
+    validation_loader = DataLoader(datasets_['validation'],
+                                   batch_size=BATCH_SIZE, shuffle=False,
                                    num_workers=8, pin_memory=True)
-    test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=False,
-                             num_workers=8, pin_memory=True)
-    return train_loader, validation_loader, test_loader
+    test_loader = DataLoader(datasets_['test'], batch_size=BATCH_SIZE,
+                             shuffle=False, num_workers=8, pin_memory=True)
+    return {'train': train_loader, 'validation': validation_loader,
+            'test': test_loader}
 
 
-def get_model(class_count):
-    model = models.efficientnet_b0(pretrained=True)
-    model.requires_grad_(False)
-    model.classifier[-1] = nn.Linear(model.classifier[-1].in_features,
-                                     class_count)
-    return model
+class Trainer:
+    def __init__(self):
+        self.device = torch.device('cuda' if torch.cuda.is_available()
+                                   else 'cpu')
+        print(f'Device: {self.device}')
+        self.datasets = get_datasets()
+        self.data_loaders = get_data_loaders(self.datasets)
+        self.class_count = len(self.datasets['train'].classes)
+        self.model = self.get_model().to(self.device)
+        self.criterion = nn.CrossEntropyLoss()
+        self.optimizer = optim.Adam(self.model.parameters(), lr=LEARNING_RATE)
 
+    def get_model(self):
+        model = models.efficientnet_b0(pretrained=True)
+        model.requires_grad_(False)
+        model.classifier[-1] = nn.Linear(model.classifier[-1].in_features,
+                                         self.class_count)
+        return model
 
-def main():
-    train_set, validation_set, test_set = get_datasets()
-    train_loader, validation_loader, test_loader = get_data_loaders(
-        train_set, validation_set, test_set)
-    class_count = len(train_set.classes)
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f'Device: {device}')
-    model = get_model(class_count).to(device)
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-
-    for epoch in range(1, EPOCH_COUNT + 1):
-        total_loss = 0
-        for batch in tqdm(train_loader):
-            inputs, labels = batch
-            inputs = inputs.to(device)
-            labels = labels.to(device)
-            optimizer.zero_grad()
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-            total_loss += loss.item()
-        epoch_loss = total_loss / len(train_loader)
-        print(f'Epoch {epoch}/{EPOCH_COUNT}: '
-              f'loss: {epoch_loss:.4f}')
+    def train(self):
+        for epoch in range(1, EPOCH_COUNT + 1):
+            total_loss = 0
+            for batch in tqdm(self.data_loaders['train']):
+                inputs, labels = batch
+                inputs = inputs.to(self.device)
+                labels = labels.to(self.device)
+                self.optimizer.zero_grad()
+                outputs = self.model(inputs)
+                loss = self.criterion(outputs, labels)
+                loss.backward()
+                self.optimizer.step()
+                total_loss += loss.item()
+            epoch_loss = total_loss / len(self.data_loaders['train'])
+            print(f'Epoch {epoch}/{EPOCH_COUNT}: '
+                  f'loss: {epoch_loss:.4f}')
 
 
 if __name__ == '__main__':
-    main()
+    trainer = Trainer()
+    trainer.train()
