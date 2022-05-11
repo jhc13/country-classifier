@@ -1,10 +1,14 @@
+from datetime import datetime
+
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets, models, transforms
 from tqdm import tqdm
 
 DATASET_DIRECTORY = '../dataset'
+RUNS_DIRECTORY = '../runs'
 BATCH_SIZE = 32
 LEARNING_RATE = 1e-4
 EPOCH_COUNT = 10
@@ -99,6 +103,8 @@ class Trainer:
         return self.run_epoch('validation')
 
     def train(self):
+        run_name = datetime.now().strftime("%y%m%d%H%M%S")
+        writer = SummaryWriter(log_dir=f'../{RUNS_DIRECTORY}/{run_name}')
         for epoch in range(1, EPOCH_COUNT + 1):
             print(f'Epoch {epoch}/{EPOCH_COUNT}')
             train_loss, train_accuracy = self.run_train_epoch()
@@ -107,6 +113,13 @@ class Trainer:
                   f'Train accuracy: {train_accuracy:.2%}\n'
                   f'Valid loss: {validation_loss:.4f}, '
                   f'Valid accuracy: {validation_accuracy:.2%}')
+            writer.add_scalar('Loss/train', train_loss, epoch)
+            writer.add_scalar('Accuracy/train', train_accuracy, epoch)
+            writer.add_scalar('Loss/validation', validation_loss, epoch)
+            writer.add_scalar('Accuracy/validation', validation_accuracy,
+                              epoch)
+            writer.flush()
+        writer.close()
 
 
 if __name__ == '__main__':
