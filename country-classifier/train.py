@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 DATASET_DIRECTORY = '../dataset'
 RUNS_DIRECTORY = '../runs'
+NUM_WORKERS = 8
 BATCH_SIZE = 32
 LEARNING_RATE = 1e-4
 EPOCH_COUNT = 10
@@ -38,12 +39,14 @@ def get_datasets() -> dict[str, datasets.folder.ImageFolder]:
 def get_data_loaders(datasets_: dict[str, datasets.folder.ImageFolder]) \
         -> dict[str, DataLoader]:
     train_loader = DataLoader(datasets_['train'], batch_size=BATCH_SIZE,
-                              shuffle=True, num_workers=8, pin_memory=True)
+                              shuffle=True, num_workers=NUM_WORKERS,
+                              pin_memory=True)
     validation_loader = DataLoader(datasets_['validation'],
                                    batch_size=BATCH_SIZE, shuffle=False,
-                                   num_workers=8, pin_memory=True)
+                                   num_workers=NUM_WORKERS, pin_memory=True)
     test_loader = DataLoader(datasets_['test'], batch_size=BATCH_SIZE,
-                             shuffle=False, num_workers=8, pin_memory=True)
+                             shuffle=False, num_workers=NUM_WORKERS,
+                             pin_memory=True)
     return {'train': train_loader, 'validation': validation_loader,
             'test': test_loader}
 
