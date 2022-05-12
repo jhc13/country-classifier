@@ -11,9 +11,11 @@ from tqdm import tqdm
 DATASET_DIRECTORY = '../dataset'
 RUNS_DIRECTORY = '../runs'
 NUM_WORKERS = 8
-BATCH_SIZE = 32
-LEARNING_RATE = 1e-4
 EPOCH_COUNT = 10
+
+MODEL_NAME = 'efficientnet_b0'
+LEARNING_RATE = 1e-4
+BATCH_SIZE = 32
 
 
 def get_datasets() -> dict[str, datasets.folder.ImageFolder]:
@@ -68,7 +70,7 @@ class Trainer:
         self.optimizer = optim.Adam(self.model.parameters(), lr=LEARNING_RATE)
 
     def get_model(self) -> nn.Module:
-        model = models.efficientnet_b0(pretrained=True)
+        model = getattr(models, MODEL_NAME)(pretrained=True)
         model.requires_grad_(False)
         model.classifier[-1] = nn.Linear(model.classifier[-1].in_features,
                                          self.class_count)
@@ -111,6 +113,8 @@ class Trainer:
         run_name = datetime.now().strftime("%y%m%d%H%M%S")
         run_directory = f'{RUNS_DIRECTORY}/{run_name}'
         writer = SummaryWriter(log_dir=run_directory)
+        validation_loss = None
+        validation_accuracy = None
         for epoch in range(1, EPOCH_COUNT + 1):
             print(f'\nEpoch {epoch}/{EPOCH_COUNT}')
             train_loss, train_accuracy = self.run_train_epoch()
@@ -125,6 +129,14 @@ class Trainer:
             writer.add_scalar('Accuracy/validation', validation_accuracy,
                               epoch)
             writer.flush()
+        writer.add_hparams(
+            hparam_dict={'model': MODEL_NAME,
+                         'learning_rate': LEARNING_RATE,
+                         'batch_size': BATCH_SIZE,
+                         'optimizer': self.optimizer.__class__.__name__},
+            metric_dict={'validation_loss': validation_loss,
+                         'validation_accuracy': validation_accuracy},
+            run_name='hparams')
         writer.close()
         torch.save(self.model.state_dict(), f'{run_directory}/state_dict.pt')
 
