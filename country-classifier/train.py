@@ -1,4 +1,5 @@
 import sys
+from copy import deepcopy
 from datetime import datetime
 
 import torch
@@ -11,11 +12,12 @@ from tqdm import tqdm
 DATASET_DIRECTORY = '../dataset'
 RUNS_DIRECTORY = '../runs'
 NUM_WORKERS = 8
-EPOCH_COUNT = 10
+EPOCH_COUNT = 100
 
 MODEL_NAME = 'efficientnet_b0'
 LEARNING_RATE = 1e-4
 BATCH_SIZE = 32
+EARLY_STOPPING_PATIENCE = 5
 
 
 def get_datasets() -> dict[str, datasets.folder.ImageFolder]:
@@ -113,32 +115,47 @@ class Trainer:
         run_name = datetime.now().strftime("%y%m%d%H%M%S")
         run_directory = f'{RUNS_DIRECTORY}/{run_name}'
         writer = SummaryWriter(log_dir=run_directory)
-        validation_loss = None
-        validation_accuracy = None
+        # Variables for early stopping. Stop training if the validation loss
+        # does not improve for EARLY_STOPPING_PATIENCE epochs.
+        best_model_state_dict = None
+        best_model_loss = float('inf')
+        best_model_accuracy = None
+        epochs_since_improvement = 0
         for epoch in range(1, EPOCH_COUNT + 1):
             print(f'\nEpoch {epoch}/{EPOCH_COUNT}')
             train_loss, train_accuracy = self.run_train_epoch()
             validation_loss, validation_accuracy = self.run_validation_epoch()
+
             print(f'Train loss: {train_loss:.4f}, '
                   f'Train accuracy: {train_accuracy:.2%}\n'
-                  f'Valid loss: {validation_loss:.4f}, '
-                  f'Valid accuracy: {validation_accuracy:.2%}')
+                  f'Validation loss: {validation_loss:.4f}, '
+                  f'Validation accuracy: {validation_accuracy:.2%}')
             writer.add_scalar('Loss/train', train_loss, epoch)
             writer.add_scalar('Accuracy/train', train_accuracy, epoch)
             writer.add_scalar('Loss/validation', validation_loss, epoch)
             writer.add_scalar('Accuracy/validation', validation_accuracy,
                               epoch)
             writer.flush()
+
+            if validation_loss < best_model_loss:
+                best_model_state_dict = deepcopy(self.model.state_dict())
+                best_model_loss = validation_loss
+                best_model_accuracy = validation_accuracy
+                epochs_since_improvement = 0
+            else:
+                epochs_since_improvement += 1
+                if epochs_since_improvement >= EARLY_STOPPING_PATIENCE:
+                    break
         writer.add_hparams(
             hparam_dict={'model': MODEL_NAME,
                          'learning_rate': LEARNING_RATE,
                          'batch_size': BATCH_SIZE,
                          'optimizer': self.optimizer.__class__.__name__},
-            metric_dict={'validation_loss': validation_loss,
-                         'validation_accuracy': validation_accuracy},
+            metric_dict={'validation_loss': best_model_loss,
+                         'validation_accuracy': best_model_accuracy},
             run_name='hparams')
         writer.close()
-        torch.save(self.model.state_dict(), f'{run_directory}/state_dict.pt')
+        torch.save(best_model_state_dict, f'{run_directory}/state_dict.pt')
 
 
 if __name__ == '__main__':
