@@ -1,3 +1,4 @@
+import sys
 from datetime import datetime
 
 import torch
@@ -74,7 +75,8 @@ class Trainer:
         total_loss = 0
         total_correct = 0
         with torch.set_grad_enabled(mode == 'train'):
-            batches = tqdm(self.data_loaders[mode])
+            # Set file to sys.stdout for better coordination with print().
+            batches = tqdm(self.data_loaders[mode], file=sys.stdout)
             batches.set_description(mode.capitalize())
             for batch in batches:
                 inputs, labels = batch
@@ -107,7 +109,7 @@ class Trainer:
         run_directory = f'{RUNS_DIRECTORY}/{run_name}'
         writer = SummaryWriter(log_dir=run_directory)
         for epoch in range(1, EPOCH_COUNT + 1):
-            print(f'Epoch {epoch}/{EPOCH_COUNT}')
+            print(f'\nEpoch {epoch}/{EPOCH_COUNT}')
             train_loss, train_accuracy = self.run_train_epoch()
             validation_loss, validation_accuracy = self.run_validation_epoch()
             print(f'Train loss: {train_loss:.4f}, '
