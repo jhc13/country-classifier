@@ -4,12 +4,36 @@ from datetime import datetime
 
 import torch
 from torch import nn, optim
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from torchvision import models
+from torchvision import datasets, models, transforms
 from tqdm import tqdm
 
 import config
-from datasets import get_data_loader, get_dataset
+
+
+def get_dataset(split: str) -> datasets.folder.ImageFolder:
+    transform = transforms.Compose(
+        [transforms.ToTensor(),
+         transforms.Resize((224, 224)),
+         transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                              std=[0.229, 0.224, 0.225])])
+    if split == 'train':
+        transform = transforms.Compose(
+            [transform,
+             transforms.RandomHorizontalFlip()])
+    dataset = datasets.Country211(root=config.DATASET_DIRECTORY, split=split,
+                                  transform=transform, download=True)
+    return dataset
+
+
+def get_data_loader(dataset: datasets.folder.ImageFolder, split: str) \
+        -> DataLoader:
+    shuffle = True if split == 'train' else False
+    data_loader = DataLoader(dataset, batch_size=config.BATCH_SIZE,
+                             shuffle=shuffle, num_workers=config.NUM_WORKERS,
+                             pin_memory=True)
+    return data_loader
 
 
 def get_model(class_count: int) -> nn.Module:
@@ -79,9 +103,9 @@ def train():
             'validation', device, validation_loader, model, criterion)
 
         print(f'Train loss: {train_loss:.4f}, '
-              f'Train accuracy: {train_accuracy:.2%}\n'
+              f'train accuracy: {train_accuracy:.2%}\n'
               f'Validation loss: {validation_loss:.4f}, '
-              f'Validation accuracy: {validation_accuracy:.2%}')
+              f'validation accuracy: {validation_accuracy:.2%}')
         writer.add_scalar('Loss/train', train_loss, epoch)
         writer.add_scalar('Accuracy/train', train_accuracy, epoch)
         writer.add_scalar('Loss/validation', validation_loss, epoch)
