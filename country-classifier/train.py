@@ -8,16 +8,8 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision import models
 from tqdm import tqdm
 
+import config
 from datasets import get_data_loader, get_dataset
-
-RUNS_DIRECTORY = '../runs'
-NUM_WORKERS = 8
-EPOCH_COUNT = 100
-
-MODEL_NAME = 'efficientnet_b0'
-LEARNING_RATE = 1e-4
-BATCH_SIZE = 32
-EARLY_STOPPING_PATIENCE = 5
 
 
 class Trainer:
@@ -28,8 +20,7 @@ class Trainer:
         splits = ('train', 'valid')
         self.datasets = {split: get_dataset(split) for split in splits}
         self.data_loaders = {split: get_data_loader(
-            self.datasets[split], split, BATCH_SIZE, NUM_WORKERS)
-            for split in splits}
+            self.datasets[split], split) for split in splits}
         self.sample_count = {split: len(self.datasets[split]) for split
                              in splits}
         self.batch_count = {split: len(self.data_loaders[split]) for split
@@ -37,10 +28,11 @@ class Trainer:
         self.class_count = len(self.datasets['train'].classes)
         self.model = self.get_model().to(self.device)
         self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=LEARNING_RATE)
+        self.optimizer = optim.Adam(self.model.parameters(),
+                                    lr=config.LEARNING_RATE)
 
     def get_model(self) -> nn.Module:
-        model = getattr(models, MODEL_NAME)(pretrained=True)
+        model = getattr(models, config.MODEL_NAME)(pretrained=True)
         model.requires_grad_(False)
         model.classifier[-1] = nn.Linear(model.classifier[-1].in_features,
                                          self.class_count)
@@ -81,7 +73,7 @@ class Trainer:
 
     def train(self):
         run_name = datetime.now().strftime("%y%m%d%H%M%S")
-        run_directory = f'{RUNS_DIRECTORY}/{run_name}'
+        run_directory = f'{config.RUNS_DIRECTORY}/{run_name}'
         writer = SummaryWriter(log_dir=run_directory)
         # Variables for early stopping. Stop training if the validation loss
         # does not improve for EARLY_STOPPING_PATIENCE epochs.
@@ -89,8 +81,8 @@ class Trainer:
         best_model_loss = float('inf')
         best_model_accuracy = None
         epochs_since_improvement = 0
-        for epoch in range(1, EPOCH_COUNT + 1):
-            print(f'\nEpoch {epoch}/{EPOCH_COUNT}')
+        for epoch in range(1, config.MAX_EPOCH_COUNT + 1):
+            print(f'\nEpoch {epoch}/{config.MAX_EPOCH_COUNT}')
             train_loss, train_accuracy = self.run_train_epoch()
             validation_loss, validation_accuracy = self.run_validation_epoch()
 
@@ -112,12 +104,12 @@ class Trainer:
                 epochs_since_improvement = 0
             else:
                 epochs_since_improvement += 1
-                if epochs_since_improvement >= EARLY_STOPPING_PATIENCE:
+                if epochs_since_improvement >= config.EARLY_STOPPING_PATIENCE:
                     break
         writer.add_hparams(
-            hparam_dict={'model': MODEL_NAME,
-                         'learning_rate': LEARNING_RATE,
-                         'batch_size': BATCH_SIZE,
+            hparam_dict={'model': config.MODEL_NAME,
+                         'learning_rate': config.LEARNING_RATE,
+                         'batch_size': config.BATCH_SIZE,
                          'optimizer': self.optimizer.__class__.__name__},
             metric_dict={'validation_loss': best_model_loss,
                          'validation_accuracy': best_model_accuracy},

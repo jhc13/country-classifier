@@ -1,7 +1,7 @@
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-DATASET_DIRECTORY = '../dataset'
+import config
 
 
 def get_dataset(split: str) -> datasets.folder.ImageFolder:
@@ -14,15 +14,15 @@ def get_dataset(split: str) -> datasets.folder.ImageFolder:
         transform = transforms.Compose(
             [transform,
              transforms.RandomHorizontalFlip()])
-    dataset = datasets.Country211(root=DATASET_DIRECTORY, split=split,
+    dataset = datasets.Country211(root=config.DATASET_DIRECTORY, split=split,
                                   transform=transform, download=True)
     return dataset
 
 
-def get_data_loader(dataset: datasets.folder.ImageFolder, split: str,
-                    batch_size: int, num_workers: int) \
+def get_data_loader(dataset: datasets.folder.ImageFolder, split: str) \
         -> DataLoader:
     shuffle = True if split == 'train' else False
-    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
-                             num_workers=num_workers, pin_memory=True)
+    data_loader = DataLoader(dataset, batch_size=config.BATCH_SIZE,
+                             shuffle=shuffle, num_workers=config.NUM_WORKERS,
+                             pin_memory=True)
     return data_loader
