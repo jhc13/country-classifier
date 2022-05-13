@@ -72,7 +72,7 @@ class Trainer:
         return self.run_epoch('valid')
 
     def train(self):
-        run_name = datetime.now().strftime("%y%m%d%H%M%S")
+        run_name = config.RUN_NAME or datetime.now().strftime("%y%m%d%H%M%S")
         run_directory = f'{config.RUNS_DIRECTORY}/{run_name}'
         writer = SummaryWriter(log_dir=run_directory)
         # Variables for early stopping. Stop training if the validation loss

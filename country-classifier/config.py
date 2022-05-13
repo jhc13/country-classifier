@@ -1,5 +1,6 @@
 DATASET_DIRECTORY = '../dataset'
 RUNS_DIRECTORY = '../runs'
+RUN_NAME = None
 MODEL_NAME = 'efficientnet_b0'
 NUM_WORKERS = 8
 BATCH_SIZE = 32
