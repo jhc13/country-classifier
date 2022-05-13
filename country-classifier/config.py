@@ -15,3 +15,6 @@ TEST_STATE_DICT_PATH = None
 # predict.py
 PREDICT_STATE_DICT_PATH = None
 PREDICT_IMAGE_PATH = None
+MAP_SHAPEFILE_PATH = ('../map/ne_110m_admin_0_countries'
+                      '/ne_110m_admin_0_countries.shp')
+PLOT_SAVE_PATH = None
