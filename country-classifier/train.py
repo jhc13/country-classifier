@@ -45,10 +45,11 @@ def get_model(class_count: int) -> nn.Module:
 
 
 def run_epoch(mode: str, device, data_loader, model, criterion,
-              optimizer=None) -> tuple[float, float]:
+              optimizer=None) -> tuple[float, float, float]:
     model.train(mode == 'train')
     total_loss = 0
     total_correct = 0
+    total_in_top_5 = 0
     with torch.set_grad_enabled(mode == 'train'):
         # Set file to sys.stdout for better coordination with print().
         batches = tqdm(data_loader, file=sys.stdout)
@@ -67,11 +68,16 @@ def run_epoch(mode: str, device, data_loader, model, criterion,
             total_loss += loss.item()
             predictions = outputs.argmax(dim=1)
             total_correct += torch.sum(predictions == labels).item()
+            # topk() returns a tuple of (values, indices).
+            top_5_predictions = outputs.topk(5, dim=1)[1]
+            total_in_top_5 += torch.sum(
+                top_5_predictions == labels.unsqueeze(dim=1)).item()
     batch_count = len(data_loader)
     sample_count = len(data_loader.dataset)
     epoch_loss = total_loss / batch_count
     epoch_accuracy = total_correct / sample_count
-    return epoch_loss, epoch_accuracy
+    epoch_top_5_accuracy = total_in_top_5 / sample_count
+    return epoch_loss, epoch_accuracy, epoch_top_5_accuracy
 
 
 def train():
@@ -94,29 +100,37 @@ def train():
     best_model_state_dict = None
     best_model_loss = float('inf')
     best_model_accuracy = None
+    best_model_top_5_accuracy = None
     epochs_since_improvement = 0
     for epoch in range(1, config.MAX_EPOCH_COUNT + 1):
         print(f'\nEpoch {epoch}/{config.MAX_EPOCH_COUNT}')
-        train_loss, train_accuracy = run_epoch('train', device, train_loader,
-                                               model, criterion, optimizer)
-        validation_loss, validation_accuracy = run_epoch(
-            'validation', device, validation_loader, model, criterion)
+        train_loss, train_accuracy, train_top_5_accuracy = run_epoch(
+            'train', device, train_loader, model, criterion, optimizer)
+        validation_loss, validation_accuracy, validation_top_5_accuracy = (
+            run_epoch('validation', device, validation_loader, model,
+                      criterion))
 
-        print(f'Train loss: {train_loss:.4f}, '
-              f'train accuracy: {train_accuracy:.2%}\n'
-              f'Validation loss: {validation_loss:.4f}, '
-              f'validation accuracy: {validation_accuracy:.2%}')
+        print(f'Train: loss: {train_loss:.4f}, '
+              f'accuracy: {train_accuracy:.2%}, '
+              f'top-5 accuracy: {train_top_5_accuracy:.2%}\n'
+              f'Validation: loss: {validation_loss:.4f}, '
+              f'accuracy: {validation_accuracy:.2%}, '
+              f'top-5 accuracy: {validation_top_5_accuracy:.2%}')
         writer.add_scalar('Loss/train', train_loss, epoch)
         writer.add_scalar('Accuracy/train', train_accuracy, epoch)
+        writer.add_scalar('Top-5 accuracy/train', train_top_5_accuracy, epoch)
         writer.add_scalar('Loss/validation', validation_loss, epoch)
         writer.add_scalar('Accuracy/validation', validation_accuracy,
                           epoch)
+        writer.add_scalar('Top-5 accuracy/validation',
+                          validation_top_5_accuracy, epoch)
         writer.flush()
 
         if validation_loss < best_model_loss:
             best_model_state_dict = deepcopy(model.state_dict())
             best_model_loss = validation_loss
             best_model_accuracy = validation_accuracy
+            best_model_top_5_accuracy = validation_top_5_accuracy
             epochs_since_improvement = 0
         else:
             epochs_since_improvement += 1
@@ -128,7 +142,8 @@ def train():
                      'batch_size': config.BATCH_SIZE,
                      'optimizer': optimizer.__class__.__name__},
         metric_dict={'validation_loss': best_model_loss,
-                     'validation_accuracy': best_model_accuracy},
+                     'validation_accuracy': best_model_accuracy,
+                     'validation_top_5_accuracy': best_model_top_5_accuracy},
         run_name='hparams')
     writer.close()
     torch.save(best_model_state_dict, f'{run_directory}/state_dict.pt')

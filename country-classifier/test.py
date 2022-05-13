@@ -15,8 +15,10 @@ def test():
     state_dict = torch.load(config.TEST_STATE_DICT_PATH)
     model.load_state_dict(state_dict)
     criterion = nn.CrossEntropyLoss()
-    loss, accuracy = run_epoch('test', device, data_loader, model, criterion)
-    print(f'Test loss: {loss:.4f}, test accuracy: {accuracy:.2%}')
+    loss, accuracy, top_5_accuracy = run_epoch('test', device, data_loader,
+                                               model, criterion)
+    print(f'Test: loss: {loss:.4f}, accuracy: {accuracy:.2%}, '
+          f'top-5 accuracy: {top_5_accuracy:.2%}')
 
 
 if __name__ == '__main__':
