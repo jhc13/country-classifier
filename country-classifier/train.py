@@ -4,12 +4,12 @@ from datetime import datetime
 
 import torch
 from torch import nn, optim
-from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from torchvision import datasets, models, transforms
+from torchvision import models
 from tqdm import tqdm
 
-DATASET_DIRECTORY = '../dataset'
+from datasets import get_data_loader, get_dataset
+
 RUNS_DIRECTORY = '../runs'
 NUM_WORKERS = 8
 EPOCH_COUNT = 100
@@ -20,52 +20,20 @@ BATCH_SIZE = 32
 EARLY_STOPPING_PATIENCE = 5
 
 
-def get_datasets() -> dict[str, datasets.folder.ImageFolder]:
-    test_transform = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Resize((224, 224)),
-         transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                              std=[0.229, 0.224, 0.225])])
-    train_transform = transforms.Compose(
-        [test_transform,
-         transforms.RandomHorizontalFlip()])
-
-    train_set = datasets.Country211(root=DATASET_DIRECTORY, split='train',
-                                    transform=train_transform, download=True)
-    validation_set = datasets.Country211(root=DATASET_DIRECTORY, split='valid',
-                                         transform=test_transform,
-                                         download=True)
-    test_set = datasets.Country211(root=DATASET_DIRECTORY, split='test',
-                                   transform=test_transform, download=True)
-    return {'train': train_set, 'validation': validation_set, 'test': test_set}
-
-
-def get_data_loaders(datasets_: dict[str, datasets.folder.ImageFolder]) \
-        -> dict[str, DataLoader]:
-    train_loader = DataLoader(datasets_['train'], batch_size=BATCH_SIZE,
-                              shuffle=True, num_workers=NUM_WORKERS,
-                              pin_memory=True)
-    validation_loader = DataLoader(datasets_['validation'],
-                                   batch_size=BATCH_SIZE, shuffle=False,
-                                   num_workers=NUM_WORKERS, pin_memory=True)
-    test_loader = DataLoader(datasets_['test'], batch_size=BATCH_SIZE,
-                             shuffle=False, num_workers=NUM_WORKERS,
-                             pin_memory=True)
-    return {'train': train_loader, 'validation': validation_loader,
-            'test': test_loader}
-
-
 class Trainer:
     def __init__(self):
         self.device = torch.device('cuda' if torch.cuda.is_available()
                                    else 'cpu')
         print(f'Device: {self.device}')
-        self.datasets = get_datasets()
-        self.data_loaders = get_data_loaders(self.datasets)
+        splits = ('train', 'valid')
+        self.datasets = {split: get_dataset(split) for split in splits}
+        self.data_loaders = {split: get_data_loader(
+            self.datasets[split], split, BATCH_SIZE, NUM_WORKERS)
+            for split in splits}
         self.sample_count = {split: len(self.datasets[split]) for split
-                             in self.datasets}
+                             in splits}
         self.batch_count = {split: len(self.data_loaders[split]) for split
-                            in self.data_loaders}
+                            in splits}
         self.class_count = len(self.datasets['train'].classes)
         self.model = self.get_model().to(self.device)
         self.criterion = nn.CrossEntropyLoss()
@@ -109,7 +77,7 @@ class Trainer:
 
     def run_validation_epoch(self) -> tuple[float, float]:
         self.model.eval()
-        return self.run_epoch('validation')
+        return self.run_epoch('valid')
 
     def train(self):
         run_name = datetime.now().strftime("%y%m%d%H%M%S")
