@@ -1,3 +1,4 @@
+# train.py
 DATASET_DIRECTORY = '../dataset'
 RUNS_DIRECTORY = '../runs'
 RUN_NAME = None
@@ -7,3 +8,6 @@ BATCH_SIZE = 32
 LEARNING_RATE = 1e-4
 MAX_EPOCH_COUNT = 100
 EARLY_STOPPING_PATIENCE = 5
+
+# test.py
+TEST_STATE_DICT_PATH = None
