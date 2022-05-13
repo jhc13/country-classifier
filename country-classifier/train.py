@@ -12,7 +12,7 @@ from tqdm import tqdm
 import config
 
 
-def get_dataset(split: str) -> datasets.folder.ImageFolder:
+def get_transform(split: str) -> transforms.Compose:
     transform = transforms.Compose(
         [transforms.ToTensor(),
          transforms.Resize((224, 224)),
@@ -22,6 +22,11 @@ def get_dataset(split: str) -> datasets.folder.ImageFolder:
         transform = transforms.Compose(
             [transform,
              transforms.RandomHorizontalFlip()])
+    return transform
+
+
+def get_dataset(split: str) -> datasets.folder.ImageFolder:
+    transform = get_transform(split)
     dataset = datasets.Country211(root=config.DATASET_DIRECTORY, split=split,
                                   transform=transform, download=True)
     return dataset
