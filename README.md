@@ -36,13 +36,13 @@ images from 211 countries, with 150 train images, 50 validation images, and
 
 ## Model
 
-The pretrained [EfficientNet](https://arxiv.org/abs/1905.11946) models were
-used as a base for transfer learning. Training a model from scratch was 
-deemed infeasible, especially considering the small size of the dataset. 8
+A pretrained [EfficientNet](https://arxiv.org/abs/1905.11946) model was used
+as a base for transfer learning. Training a model from scratch was deemed
+infeasible, especially considering the small size of the dataset. 8 
 variations of EfficientNet models are available, increasing in size from
 EfficientNet-B0 to EfficientNet-B7. The largest model that could be trained
 without running out of memory on the available RTX 3080 10 GB GPU was
-EfficientNet-B2, so this was chosen for the final model.
+EfficientNet-B2, so this was chosen for training.
 
 ## Training
 
