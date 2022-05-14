@@ -3,6 +3,7 @@ DATASET_DIRECTORY = '../dataset'
 RUNS_DIRECTORY = '../runs'
 RUN_NAME = None
 MODEL_NAME = 'efficientnet_b0'
+IMAGE_SIZE = (224, 224)
 NUM_WORKERS = 8
 BATCH_SIZE = 32
 LEARNING_RATE = 1e-4
