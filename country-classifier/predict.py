@@ -31,20 +31,28 @@ def print_top_k_predictions(k: int, probabilities: torch.Tensor,
 
 def plot_map(probabilities: torch.Tensor, country_codes: list[str]):
     world_map = geopandas.read_file(config.MAP_SHAPEFILE_PATH)
+    # Create a new column with all values set to 0.
     world_map['probability'] = 0
     for country_code, probability in zip(country_codes, probabilities):
+        # Find the row with the matching country code and set the probability.
         world_map.loc[world_map['ISO_A2_EH'] == country_code,
                       'probability'] = probability.item()
     fig, ax = plt.subplots(figsize=(11, 5))
+    # cax is the axes for the colorbar.
     ax_divider = make_axes_locatable(ax)
     cax = ax_divider.append_axes('right', size='5%', pad=0.1)
     world_map.plot(column='probability', cmap='viridis', legend=True, ax=ax,
                    cax=cax)
+    # Set the background (ocean) color.
     ax.set_facecolor('#d3e3e9')
+    # Hide the ticks and labels for the axes.
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
+    # Set the axes limits to the minimum and maximum values.
     ax.autoscale(tight=True)
+    # Change the colorbar tick labels to percentages.
     cax.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=1))
+    # Remove the extra margin.
     fig.tight_layout()
     fig.show()
     if config.PLOT_SAVE_PATH:
