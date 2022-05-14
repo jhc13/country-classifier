@@ -1,6 +1,6 @@
 # Country Classifier
 
-A convolutional neural network (CNN) model for determining the country a photo
+A convolutional neural network (CNN) model that determines the country a photo
 was taken in.
 
 ## Usage
