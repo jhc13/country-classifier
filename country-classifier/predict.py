@@ -26,7 +26,7 @@ def print_top_k_predictions(k: int, probabilities: torch.Tensor,
                          in top_labels]
     for i, (country_name, probability) in enumerate(
             zip(top_country_names, top_probabilities)):
-        print(f'{i + 1}. {country_name}: {probability:.2%}')
+        print(f'{i + 1}. {country_name}: {probability:.1%}')
 
 
 def plot_map(probabilities: torch.Tensor, country_codes: list[str]):
