@@ -19,12 +19,13 @@ def get_country_name(country_code: str) -> str:
     return countries.get(alpha_2=country_code).name
 
 
-def print_top_5(probabilities: torch.Tensor, country_codes: list[str]):
-    top_5_probabilities, top_5_labels = probabilities.topk(5)
-    top_5_country_names = [get_country_name(country_codes[label]) for label
-                           in top_5_labels]
+def print_top_k_predictions(k: int, probabilities: torch.Tensor,
+                            country_codes: list[str]):
+    top_probabilities, top_labels = probabilities.topk(k)
+    top_country_names = [get_country_name(country_codes[label]) for label
+                         in top_labels]
     for i, (country_name, probability) in enumerate(
-            zip(top_5_country_names, top_5_probabilities)):
+            zip(top_country_names, top_probabilities)):
         print(f'{i + 1}. {country_name}: {probability:.2%}')
 
 
@@ -64,7 +65,7 @@ def predict():
     with torch.no_grad():
         output = model(transformed_image)
     probabilities = F.softmax(output, dim=1).squeeze()
-    print_top_5(probabilities, country_codes)
+    print_top_k_predictions(config.PREDICT_TOP_K, probabilities, country_codes)
     plot_map(probabilities, country_codes)
 
 
