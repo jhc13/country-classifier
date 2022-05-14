@@ -45,7 +45,8 @@ def get_data_loader(dataset: datasets.folder.ImageFolder, split: str) \
 def get_model(class_count: int) -> nn.Module:
     # Get the pretrained EfficientNet model.
     model = getattr(models, config.MODEL_NAME)(pretrained=True)
-    model.requires_grad_(False)
+    # Replace the last layer with a new one with the correct number of
+    # output classes.
     model.classifier[-1] = nn.Linear(model.classifier[-1].in_features,
                                      class_count)
     return model
