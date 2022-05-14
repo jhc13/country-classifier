@@ -62,3 +62,55 @@ seem to improve the model's performance.
 
 The `state_dict.pt` file for the final model can be found in the `models`
 directory.
+
+## Results
+
+The model achieved the following performance on the test set:
+
+- Accuracy: 13.7%
+- Top-5 accuracy: 29.6%
+
+Unsurprisingly, the model performs best on pictures taken outside and those
+containing distinct natural features, compared to indoor photos or close-up
+images of objects. A curated set of images from the test set and the model's
+predictions for them are shown below.
+
+### Sweden
+
+| Photo                  | Top-5 Predictions                                                                                    |
+|------------------------|------------------------------------------------------------------------------------------------------|
+| ![](images/sweden.jpg) | 1. Sweden: 4.7%<br/>2. Slovenia: 4.7%<br/>3. Slovakia: 4.3%<br/>4. Latvia: 4.3%<br/>5. Ukraine: 4.1% |
+
+| Prediction map         |
+|------------------------|
+| ![](images/sweden.svg) |
+
+### Kenya
+
+| Photo                 | Top-5 Predictions                                                                                          |
+|-----------------------|------------------------------------------------------------------------------------------------------------|
+| ![](images/kenya.jpg) | 1. Kenya: 20.6%<br/>Botswana: 18.9%<br/>3. Tanzania: 18.0%<br/>4. Eswatini: 8.9%<br/>5. South Africa: 6.5% |
+
+| Prediction map        |
+|-----------------------|
+| ![](images/kenya.svg) |
+
+### Japan
+
+| Photo                 | Top-5 Predictions                                                                                       |
+|-----------------------|---------------------------------------------------------------------------------------------------------|
+| ![](images/japan.jpg) | 1. Hong Kong: 20.9%<br/>Macao: 17.5%<br/>3. Singapore: 9.9%<br/>4. South Korea: 4.1%<br/>5. Japan: 4.0% |
+
+| Prediction map        |
+|-----------------------|
+| ![](images/japan.svg) |
+
+### Antarctica
+
+| Photo                      | Top-5 Predictions                                                                                        |
+|----------------------------|----------------------------------------------------------------------------------------------------------|
+| ![](images/antarctica.jpg) | 1. Antarctica: 52.4%<br/>Greenland: 28.9%<br/>3. Svalbard: 4.8%<br/>4. Norway: 2.3%<br/>5. Andorra: 1.6% |
+
+| Prediction map             |
+|----------------------------|
+| ![](images/antarctica.svg) |
