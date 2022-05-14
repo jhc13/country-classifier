@@ -18,6 +18,7 @@ def get_transform(split: str) -> transforms.Compose:
          transforms.Resize(config.IMAGE_SIZE),
          transforms.Normalize(mean=[0.485, 0.456, 0.406],
                               std=[0.229, 0.224, 0.225])])
+    # Augment the train set with random horizontal flips.
     if split == 'train':
         transform = transforms.Compose(
             [transform,
@@ -42,6 +43,7 @@ def get_data_loader(dataset: datasets.folder.ImageFolder, split: str) \
 
 
 def get_model(class_count: int) -> nn.Module:
+    # Get the pretrained EfficientNet model.
     model = getattr(models, config.MODEL_NAME)(pretrained=True)
     model.requires_grad_(False)
     model.classifier[-1] = nn.Linear(model.classifier[-1].in_features,
@@ -137,6 +139,7 @@ def train():
         log_epoch_results(epoch, writer, train_loss, train_accuracy,
                           train_top_5_accuracy, validation_loss,
                           validation_accuracy, validation_top_5_accuracy)
+        # Check for early stopping.
         if validation_loss < best_model_loss:
             best_model_state_dict = deepcopy(model.state_dict())
             best_model_loss = validation_loss
@@ -147,6 +150,7 @@ def train():
             epochs_since_improvement += 1
             if epochs_since_improvement >= config.EARLY_STOPPING_PATIENCE:
                 break
+    # Save the hyperparameters.
     writer.add_hparams(
         hparam_dict={'model': config.MODEL_NAME,
                      'learning_rate': config.LEARNING_RATE,
@@ -157,6 +161,7 @@ def train():
                      'validation_top_5_accuracy': best_model_top_5_accuracy},
         run_name='hparams')
     writer.close()
+    # Save the best model.
     torch.save(best_model_state_dict, f'{run_directory}/state_dict.pt')
 
 
