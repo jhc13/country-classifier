@@ -87,9 +87,9 @@ predictions for them are shown below.
 
 ### Kenya
 
-| Photo                 | Top-5 Predictions                                                                                          |
-|-----------------------|------------------------------------------------------------------------------------------------------------|
-| ![](images/kenya.jpg) | 1. Kenya: 20.6%<br/>Botswana: 18.9%<br/>3. Tanzania: 18.0%<br/>4. Eswatini: 8.9%<br/>5. South Africa: 6.5% |
+| Photo                 | Top-5 Predictions                                                                                             |
+|-----------------------|---------------------------------------------------------------------------------------------------------------|
+| ![](images/kenya.jpg) | 1. Kenya: 20.6%<br/>2. Botswana: 18.9%<br/>3. Tanzania: 18.0%<br/>4. Eswatini: 8.9%<br/>5. South Africa: 6.5% |
 
 | Prediction map        |
 |-----------------------|
@@ -97,9 +97,9 @@ predictions for them are shown below.
 
 ### Japan
 
-| Photo                 | Top-5 Predictions                                                                                       |
-|-----------------------|---------------------------------------------------------------------------------------------------------|
-| ![](images/japan.jpg) | 1. Hong Kong: 20.9%<br/>Macao: 17.5%<br/>3. Singapore: 9.9%<br/>4. South Korea: 4.1%<br/>5. Japan: 4.0% |
+| Photo                 | Top-5 Predictions                                                                                          |
+|-----------------------|------------------------------------------------------------------------------------------------------------|
+| ![](images/japan.jpg) | 1. Hong Kong: 20.9%<br/>2. Macao: 17.5%<br/>3. Singapore: 9.9%<br/>4. South Korea: 4.1%<br/>5. Japan: 4.0% |
 
 | Prediction map        |
 |-----------------------|
@@ -107,9 +107,9 @@ predictions for them are shown below.
 
 ### Antarctica
 
-| Photo                      | Top-5 Predictions                                                                                        |
-|----------------------------|----------------------------------------------------------------------------------------------------------|
-| ![](images/antarctica.jpg) | 1. Antarctica: 52.4%<br/>Greenland: 28.9%<br/>3. Svalbard: 4.8%<br/>4. Norway: 2.3%<br/>5. Andorra: 1.6% |
+| Photo                      | Top-5 Predictions                                                                                           |
+|----------------------------|-------------------------------------------------------------------------------------------------------------|
+| ![](images/antarctica.jpg) | 1. Antarctica: 52.4%<br/>2. Greenland: 28.9%<br/>3. Svalbard: 4.8%<br/>4. Norway: 2.3%<br/>5. Andorra: 1.6% |
 
 | Prediction map             |
 |----------------------------|
