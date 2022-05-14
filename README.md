@@ -128,6 +128,6 @@ categories:
 - Incorrectly labeled (taken in a different country)
 
 These images hinder the model's training, so the preparation of any new dataset
-should be done with care so that these kinds of images are excluded. A model
-trained on such a dataset, preferably with a large number of images, will be
-able to achieve improved performance.
+should be done with care so that these are excluded. A model trained on such
+a dataset, preferably with a large number of images, will be able to achieve
+improved performance.
