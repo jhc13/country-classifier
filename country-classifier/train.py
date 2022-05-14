@@ -85,6 +85,26 @@ def run_epoch(mode: str, device, data_loader, model, criterion,
     return epoch_loss, epoch_accuracy, epoch_top_5_accuracy
 
 
+def log_epoch_results(epoch, writer, train_loss, train_accuracy,
+                      train_top_5_accuracy, validation_loss,
+                      validation_accuracy, validation_top_5_accuracy):
+    print(f'Train: loss: {train_loss:.4f}, '
+          f'accuracy: {train_accuracy:.2%}, '
+          f'top-5 accuracy: {train_top_5_accuracy:.2%}\n'
+          f'Validation: loss: {validation_loss:.4f}, '
+          f'accuracy: {validation_accuracy:.2%}, '
+          f'top-5 accuracy: {validation_top_5_accuracy:.2%}')
+    writer.add_scalar('Loss/train', train_loss, epoch)
+    writer.add_scalar('Accuracy/train', train_accuracy, epoch)
+    writer.add_scalar('Top-5 accuracy/train', train_top_5_accuracy, epoch)
+    writer.add_scalar('Loss/validation', validation_loss, epoch)
+    writer.add_scalar('Accuracy/validation', validation_accuracy,
+                      epoch)
+    writer.add_scalar('Top-5 accuracy/validation',
+                      validation_top_5_accuracy, epoch)
+    writer.flush()
+
+
 def train():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f'Device: {device}')
@@ -114,23 +134,9 @@ def train():
         validation_loss, validation_accuracy, validation_top_5_accuracy = (
             run_epoch('validation', device, validation_loader, model,
                       criterion))
-
-        print(f'Train: loss: {train_loss:.4f}, '
-              f'accuracy: {train_accuracy:.2%}, '
-              f'top-5 accuracy: {train_top_5_accuracy:.2%}\n'
-              f'Validation: loss: {validation_loss:.4f}, '
-              f'accuracy: {validation_accuracy:.2%}, '
-              f'top-5 accuracy: {validation_top_5_accuracy:.2%}')
-        writer.add_scalar('Loss/train', train_loss, epoch)
-        writer.add_scalar('Accuracy/train', train_accuracy, epoch)
-        writer.add_scalar('Top-5 accuracy/train', train_top_5_accuracy, epoch)
-        writer.add_scalar('Loss/validation', validation_loss, epoch)
-        writer.add_scalar('Accuracy/validation', validation_accuracy,
-                          epoch)
-        writer.add_scalar('Top-5 accuracy/validation',
-                          validation_top_5_accuracy, epoch)
-        writer.flush()
-
+        log_epoch_results(epoch, writer, train_loss, train_accuracy,
+                          train_top_5_accuracy, validation_loss,
+                          validation_accuracy, validation_top_5_accuracy)
         if validation_loss < best_model_loss:
             best_model_state_dict = deepcopy(model.state_dict())
             best_model_loss = validation_loss
