@@ -114,3 +114,20 @@ predictions for them are shown below.
 | Prediction map             |
 |----------------------------|
 | ![](images/antarctica.svg) |
+
+## Future work
+
+The greatest limitation of the model seems to be the training data, both in
+terms of size and quality. The Country211 dataset only contains 150 train set
+images for each country, and many of the images fall into the following
+categories:
+
+- Indoor photo not representative of the country
+- Close-up photo of a ubiquitous object
+- Digitally created (not a photograph)
+- Incorrectly labeled (taken in a different country)
+
+These images hinder the model's training, so the preparation of any new dataset
+should be done with care so that these kinds of images are excluded. A model
+trained on such a dataset, preferably with a large number of images, will be
+able to achieve improved performance.
